@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profitrix | KB Colour Image - Inventory Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #2e7d32;
+    --brand-dark: #1b5e20;
+    --brand-deep: #0f3d13;
+    --brand-50: #eef5ee;
+    --brand-100: #dcebdd;
+    --bg: #f3f7f3;
+    --surface: #ffffff;
+    --border: #dbe7dc;
+    --ink: #17281a;
+    --ink-2: #46604b;
+    --ink-3: #6d8471;
+    --ok-bg: #e2f0e4;   --ok-ink: #1b5e20;
+    --warn-bg: #fdf1e2; --warn-ink: #7c4a08;
+    --crit-bg: #fbe7e7; --crit-ink: #8f1d1d;
+    --idle-bg: #ece9f6; --idle-ink: #4a3d80;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Outfit', 'Trebuchet MS', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand .logo { font-size: 20px; font-weight: 700; color: var(--brand-dark); letter-spacing: -0.02em; }
+  .brand .client { font-size: 14px; color: var(--ink-2); font-weight: 500; }
+  .header-meta { font-size: 13px; color: var(--ink-3); }
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  nav button {
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--ink-2);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 16px;
+    min-height: 48px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  nav button:hover { color: var(--brand-dark); }
+  nav button.active { color: var(--brand-dark); border-bottom-color: var(--brand); font-weight: 600; }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px; }
+  .tab { display: none; }
+  .tab.active { display: block; }
+  h2 { font-size: 21px; font-weight: 600; margin-bottom: 4px; }
+  .sub { color: var(--ink-2); font-size: 14px; margin-bottom: 20px; }
+  h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .grid { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .kpi .label { font-size: 12.5px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; }
+  .kpi .value { font-size: 25px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+  .kpi .note { font-size: 12.5px; color: var(--ink-2); }
+  .kpi.alert .value { color: var(--crit-ink); }
+  .kpi.idle .value { color: var(--idle-ink); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    text-align: left; font-weight: 600; color: var(--ink-2); font-size: 12.5px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 8px 10px; border-bottom: 1px solid var(--border);
+  }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--brand-50); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr.clickable { cursor: pointer; }
+  tbody tr.clickable:hover { background: var(--brand-50); }
+
+  .badge {
+    display: inline-block; font-size: 12px; font-weight: 600;
+    padding: 2px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .b-ok   { background: var(--ok-bg);   color: var(--ok-ink); }
+  .b-warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .b-crit { background: var(--crit-bg); color: var(--crit-ink); }
+  .b-idle { background: var(--idle-bg); color: var(--idle-ink); }
+  .b-neutral { background: var(--brand-100); color: var(--brand-deep); }
+
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  input, select, textarea {
+    font-family: inherit; font-size: 14px; color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; min-height: 44px;
+  }
+  input:focus, select:focus { outline: 2px solid var(--brand); outline-offset: -1px; border-color: var(--brand); }
+  label.fld { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); margin-bottom: 4px; }
+  .field { margin-bottom: 12px; }
+  .btn {
+    font-family: inherit; font-size: 14.5px; font-weight: 600;
+    border: none; border-radius: 8px; padding: 11px 20px; min-height: 44px;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--brand); color: #f2f8f3; }
+  .btn-primary:hover { background: var(--brand-dark); }
+  .btn-ghost { background: var(--brand-50); color: var(--brand-deep); }
+  .btn-ghost:hover { background: var(--brand-100); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* chart */
+  .barchart .row { display: grid; grid-template-columns: 150px 1fr 90px; align-items: center; gap: 10px; margin-bottom: 2px; min-height: 34px; }
+  .barchart .cat { font-size: 13.5px; color: var(--ink-2); text-align: right; }
+  .barchart .track { position: relative; height: 22px; }
+  .barchart .bar {
+    position: absolute; left: 0; top: 0; height: 22px;
+    background: var(--brand);
+    border-radius: 0 4px 4px 0;
+    min-width: 6px;
+    transition: width 300ms ease-out;
+  }
+  .barchart .bar:hover { background: var(--brand-dark); }
+  .barchart .val { font-size: 13.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .baseline { border-left: 1.5px solid var(--ink-3); }
+  #tooltip {
+    position: fixed; display: none; z-index: 90;
+    background: var(--ink); color: #eef5ee;
+    font-size: 13px; padding: 7px 11px; border-radius: 7px;
+    pointer-events: none; max-width: 260px;
+  }
+
+  /* simulated documents */
+  .doc {
+    background: #fffef9;
+    border: 1px solid #e3ddc8;
+    border-radius: 6px;
+    padding: 22px 26px;
+    font-size: 13.5px;
+    color: #3d3a2e;
+    box-shadow: 0 1px 4px rgba(23, 40, 26, 0.08);
+  }
+  .doc h4 { font-size: 15px; margin-bottom: 2px; color: #23211a; }
+  .doc .doc-meta { font-size: 12.5px; color: #7a7460; margin-bottom: 12px; }
+  .doc table { font-size: 13px; }
+  .doc th { color: #7a7460; border-bottom-color: #e3ddc8; }
+  .doc td { border-bottom-color: #f0ecdd; }
+  .doc .handwritten { font-family: 'Comic Sans MS', 'Bradley Hand', cursive; color: #33418a; }
+
+  .ocr-progress { display: none; align-items: center; gap: 10px; margin: 14px 0; font-size: 14px; color: var(--brand-deep); }
+  .ocr-progress .pulse {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--brand);
+    animation: pulse 0.9s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+  .conf { font-size: 12px; color: var(--ink-3); }
+  .lines-editor td input, .lines-editor td select { min-height: 38px; padding: 6px 8px; width: 100%; }
+
+  /* modal */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(23, 40, 26, 0.45);
+    z-index: 50; padding: 4vh 16px;
+    overflow-y: auto;
+  }
+  .modal {
+    background: var(--surface); border-radius: 12px;
+    max-width: 720px; margin: 0 auto; padding: 24px;
+  }
+  .modal h3 { margin-bottom: 2px; }
+  .modal .sub { margin-bottom: 14px; }
+
+  #toasts { position: fixed; bottom: 20px; right: 20px; z-index: 99; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--brand-deep); color: #e2f0e4;
+    padding: 12px 18px; border-radius: 9px; font-size: 14px;
+    max-width: 360px;
+    animation: slidein 200ms ease-out;
+  }
+  .toast.warn { background: #7c4a08; color: #fdf1e2; }
+  @keyframes slidein { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  pre.sql {
+    background: var(--brand-deep); color: #d9e8da;
+    border-radius: var(--radius); padding: 18px;
+    font-size: 13px; line-height: 1.55; overflow-x: auto;
+    font-family: 'SF Mono', 'Consolas', monospace;
+  }
+  pre.sql .kw { color: #9fd6a4; font-weight: 600; }
+  .subnav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .empty { color: var(--ink-3); font-size: 14px; padding: 14px 0; }
+  .right { text-align: right; }
+  .mt { margin-top: 14px; }
+  .flexrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .flexrow .field { margin-bottom: 0; flex: 1; min-width: 140px; }
+  .btn-reset { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+  .btn-reset svg { flex-shrink: 0; }
+  .st-summary { background: var(--brand-50); border: 1px solid var(--brand-100); border-radius: var(--radius); padding: 14px 18px; margin-top: 14px; display: flex; gap: 24px; flex-wrap: wrap; align-items: center; font-size: 14px; }
+  .st-summary .st-sum-label { font-weight: 600; color: var(--brand-deep); font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .st-summary .st-sum-val { font-size: 22px; font-weight: 700; color: var(--ink); }
+  .transfer-progress { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--brand-deep); }
+  .transfer-progress .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); animation: pulse 0.9s ease-in-out infinite; }
+  .dashboard-ts { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: -4px; margin-right: 4px;"><rect x="2" y="4" width="6" height="16" rx="2" fill="#2e7d32"/><rect x="9" y="8" width="6" height="12" rx="2" fill="#43a047" opacity="0.85"/><rect x="16" y="2" width="6" height="18" rx="2" fill="#1b5e20"/></svg>Profitrix</span>
+    <span class="client">KB Colour Image Sdn Bhd - Inventory Edition</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:14px;">
+    <div class="header-meta">Bukit Permai Industrial Park, Cheras KL | 3 stores | <span id="hdr-sku-count"></span> SKUs</div>
+    <button class="btn btn-reset btn-ghost" id="reset-demo" title="Reset demo to starting state"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Reset</button>
+  </div>
+</header>
+
+<nav id="nav">
+  <button data-tab="dashboard" class="active">Dashboard</button>
+  <button data-tab="inventory">Stock Levels</button>
+  <button data-tab="invoice">Invoice Capture</button>
+  <button data-tab="chargeout">Charge Out</button>
+  <button data-tab="stocktake">Stock Take</button>
+  <button data-tab="schema">SQL Schema</button>
+</nav>
+
+<main>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="tab active" id="tab-dashboard">
+    <h2>Stock Health Overview</h2>
+    <p class="sub">Live position across Main Store, Production Floor and Finishing &amp; Fabrication.</p>
+    <div class="dashboard-ts" id="dashboard-ts"></div>
+    <div class="kpis" id="kpi-row"></div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Stock Value by Category (RM)</h3>
+        <div class="barchart baseline" id="cat-chart"></div>
+      </div>
+      <div class="card">
+        <h3>Movement Velocity (30-day usage)</h3>
+        <div id="velocity-strip" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;"></div>
+        <table>
+          <thead><tr><th>Signal</th><th>What it means for KB Colour</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge b-ok">FAST</span></td><td><strong>15+ units/month.</strong> High-turn items. Reorder points guard against stockouts mid-run.</td></tr>
+            <tr><td><span class="badge b-warn">SLOW</span></td><td><strong>1-14 units/month.</strong> Moving, but review order quantities before next purchase.</td></tr>
+            <tr><td><span class="badge b-idle">IDLE</span></td><td><strong>0 units/month for 60+ days.</strong> Project buys with no movement. Capital sitting on the shelf.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Low Stock Alerts</h3>
+        <table>
+          <thead><tr><th>SKU</th><th>Item</th><th class="num">On Hand</th><th class="num">Reorder At</th><th>Status</th></tr></thead>
+          <tbody id="low-stock-body"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Idle Project Stock (Aging)</h3>
+        <table>
+          <thead><tr><th>Item</th><th>Bought For</th><th class="num">Days Idle</th><th class="num">Value (RM)</th></tr></thead>
+          <tbody id="idle-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INVENTORY ============ -->
+  <section class="tab" id="tab-inventory">
+    <h2>Stock Levels</h2>
+    <p class="sub">SKU master with per-store quantities. Click any row to open its digital bin card.</p>
+    <div class="controls">
+      <input type="search" id="inv-search" placeholder="Search SKU or name" style="flex:1; min-width:200px;">
+      <select id="inv-cat"><option value="">All categories</option></select>
+      <select id="inv-store"><option value="">All stores</option></select>
+      <select id="inv-status">
+        <option value="">All statuses</option>
+        <option value="LOW">Low stock</option>
+        <option value="OUT">Out of stock</option>
+        <option value="IDLE">Idle project stock</option>
+      </select>
+    </div>
+    <div class="card" style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th><th>Item</th><th>Category</th>
+            <th class="num">Main</th><th class="num">Prod</th><th class="num">Fab</th>
+            <th class="num">Total</th><th class="num">Reorder At</th>
+            <th>Velocity</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="inv-body"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Inter-Store Transfer</h3>
+      <div class="flexrow">
+        <div class="field"><label class="fld" for="tr-item">Item</label><select id="tr-item"></select></div>
+        <div class="field"><label class="fld" for="tr-from">From</label><select id="tr-from"></select></div>
+        <div class="field"><label class="fld" for="tr-to">To</label><select id="tr-to"></select></div>
+        <div class="field"><label class="fld" for="tr-qty">Qty</label><input type="number" id="tr-qty" min="1" value="1"></div>
+        <button class="btn btn-primary" id="tr-post">Transfer</button>
+        <div class="transfer-progress" id="transfer-progress"><span class="pulse"></span><span>Transferring...</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INVOICE CAPTURE ============ -->
+  <section class="tab" id="tab-invoice">
+    <h2>Supplier Invoice Capture (OCR)</h2>
+    <p class="sub">Snap or upload a supplier invoice. Line items are extracted, matched to SKUs, then posted straight into stock. No manual bin card entry.</p>
+    <div class="grid grid-2">
+      <div>
+        <div class="controls">
+          <select id="inv-preset">
+            <option value="0">Sample: Bintang Media Supplies - INV-8841</option>
+            <option value="1">Sample: Prisma Substrates (M) - INV-2207</option>
+          </select>
+          <button class="btn btn-primary" id="ocr-run">Run OCR Capture</button>
+        </div>
+        <div id="invoice-doc"></div>
+        <div class="ocr-progress" id="ocr-progress"><span class="pulse"></span><span>Reading document, extracting line items...</span></div>
+      </div>
+      <div>
+        <div class="card" id="ocr-result-card" style="display:none;">
+          <h3>Extracted Lines <span class="conf" id="ocr-conf"></span></h3>
+          <div style="overflow-x:auto;">
+            <table class="lines-editor">
+              <thead><tr><th>Detected Text</th><th>SKU Match</th><th class="num" style="width:80px;">Qty</th><th class="num" style="width:100px;">Unit RM</th></tr></thead>
+              <tbody id="ocr-lines"></tbody>
+            </table>
+          </div>
+          <div class="flexrow mt">
+            <div class="field"><label class="fld" for="ocr-store">Receive into store</label><select id="ocr-store"></select></div>
+            <button class="btn btn-primary" id="ocr-post">Post to Stock</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Received Invoices</h3>
+          <table>
+            <thead><tr><th>Ref</th><th>Supplier</th><th class="num">Lines</th><th class="num">Value (RM)</th><th>Posted</th></tr></thead>
+            <tbody id="received-body"><tr><td colspan="5" class="empty">Nothing captured yet in this session.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHARGE OUT ============ -->
+  <section class="tab" id="tab-chargeout">
+    <h2>Material Charge Out</h2>
+    <p class="sub">Issue materials against a job number. Use the digital form, or capture the existing paper charge-out form with OCR.</p>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Charge Out Form</h3>
+        <div class="flexrow" style="margin-bottom:12px;">
+          <div class="field"><label class="fld" for="co-job">Job Number</label><input id="co-job" placeholder="e.g. JOB-2317"></div>
+          <div class="field"><label class="fld" for="co-staff">Issued To</label><input id="co-staff" placeholder="Operator name"></div>
+          <div class="field"><label class="fld" for="co-store">From Store</label><select id="co-store"></select></div>
+        </div>
+        <table class="lines-editor">
+          <thead><tr><th>Item</th><th class="num" style="width:90px;">Qty</th><th style="width:40px;"></th></tr></thead>
+          <tbody id="co-lines"></tbody>
+        </table>
+        <div class="flexrow mt">
+          <button class="btn btn-ghost" id="co-addline">+ Add Line</button>
+          <button class="btn btn-primary" id="co-post">Post Charge Out</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Capture Paper Form</h3>
+          <p class="sub" style="margin-bottom:12px;">KB Colour's floor crews fill paper charge-out slips today. OCR turns the slip into a posted transaction.</p>
+          <div id="paper-doc"></div>
+          <button class="btn btn-primary mt" id="paper-ocr">Capture Paper Form (OCR)</button>
+          <div class="ocr-progress" id="paper-progress"><span class="pulse"></span><span>Reading handwriting, matching items...</span></div>
+        </div>
+        <div class="card">
+          <h3>Charge Out History</h3>
+          <table>
+            <thead><tr><th>Job</th><th>Store</th><th>Issued To</th><th class="num">Lines</th><th class="num">Value (RM)</th></tr></thead>
+            <tbody id="co-history"><tr><td colspan="5" class="empty">No charge outs posted yet in this session.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STOCK TAKE ============ -->
+  <section class="tab" id="tab-stocktake">
+    <h2>Stock Take</h2>
+    <p class="sub">Count against system quantity, review variances, post adjustments. Replaces the manual bin card reconciliation.</p>
+    <div class="controls">
+      <select id="st-store"></select>
+      <select id="st-cat"><option value="">All categories</option></select>
+      <button class="btn btn-primary" id="st-post">Post Stock Take</button>
+    </div>
+    <div class="card" style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>SKU</th><th>Item</th><th>Unit</th><th class="num">System Qty</th><th class="num" style="width:110px;">Counted</th><th class="num">Variance</th><th class="num">Variance RM</th></tr></thead>
+        <tbody id="st-body"></tbody>
+      </table>
+      <div class="st-summary" id="st-summary" style="display:none;">
+        <div><div class="st-sum-label">Items Counted</div><div class="st-sum-val" id="st-sum-items">0</div></div>
+        <div><div class="st-sum-label">Total Variance (units)</div><div class="st-sum-val" id="st-sum-units">0</div></div>
+        <div><div class="st-sum-label">Total Variance (RM)</div><div class="st-sum-val" id="st-sum-rm">RM 0</div></div>
+      </div>
+    </div>
+    <div class="card" id="st-report" style="display:none;">
+      <h3>Last Stock Take Variance Report</h3>
+      <div id="st-report-body"></div>
+    </div>
+  </section>
+
+  <!-- ============ SQL SCHEMA ============ -->
+  <section class="tab" id="tab-schema">
+    <h2>SQL Schema (Postgres DDL)</h2>
+    <p class="sub">The production build runs these tables on Postgres with row-level security per store.</p>
+    <div class="subnav" id="schema-nav"></div>
+    <pre class="sql" id="schema-code"></pre>
+  </section>
+
+</main>
+
+<div class="modal-backdrop" id="bincard-backdrop">
+  <div class="modal">
+    <h3 id="bincard-title"></h3>
+    <p class="sub" id="bincard-sub"></p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>When</th><th>Type</th><th>Reference</th><th class="num">Qty</th><th class="num">Balance</th></tr></thead>
+        <tbody id="bincard-body"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-ghost mt" onclick="closeBinCard()">Close</button>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+<div id="toasts"></div>
+
+<script>
+'use strict';
+
+/* ================= DATA ================= */
+
+const STORES = [
+  { id: 'MAIN', name: 'Main Store', short: 'Main' },
+  { id: 'PROD', name: 'Production Floor Store', short: 'Prod' },
+  { id: 'FAB',  name: 'Finishing & Fabrication Store', short: 'Fab' },
+];
+
+const CATS = ['Substrate', 'Ink', 'Lamination', 'Consumable', 'Packaging'];
+
+// usage30 = units consumed in the last 30 days; lastMove = days since last movement
+const ITEMS = [
+  { sku: 'SUB-EPVC-32',  name: 'Eco-PVC Green Vinyl 3.2m Roll',      cat: 'Substrate',  unit: 'roll',  cost: 380, rop: 10, stock: { MAIN: 6,  PROD: 3,  FAB: 0 }, usage30: 22, lastMove: 1 },
+  { sku: 'SUB-PVC-32',   name: 'Standard PVC Flex 3.2m Roll',        cat: 'Substrate',  unit: 'roll',  cost: 290, rop: 12, stock: { MAIN: 15, PROD: 5,  FAB: 0 }, usage30: 30, lastMove: 0 },
+  { sku: 'SUB-VIN-GL',   name: 'Self-Adhesive Vinyl Gloss 1.52m',    cat: 'Substrate',  unit: 'roll',  cost: 185, rop: 8,  stock: { MAIN: 4,  PROD: 2,  FAB: 1 }, usage30: 18, lastMove: 2 },
+  { sku: 'SUB-VIN-MT',   name: 'Self-Adhesive Vinyl Matt 1.52m',     cat: 'Substrate',  unit: 'roll',  cost: 185, rop: 6,  stock: { MAIN: 9,  PROD: 1,  FAB: 0 }, usage30: 9,  lastMove: 4 },
+  { sku: 'SUB-ECOFAB',   name: 'Recycled Polyester Eco-Fabric 3.2m', cat: 'Substrate',  unit: 'roll',  cost: 420, rop: 4,  stock: { MAIN: 5,  PROD: 2,  FAB: 0 }, usage30: 6,  lastMove: 5 },
+  { sku: 'SUB-GREY-2',   name: 'Recycled Greyboard 2mm Sheet',       cat: 'Substrate',  unit: 'sheet', cost: 14,  rop: 60, stock: { MAIN: 120, PROD: 0, FAB: 45 }, usage30: 140, lastMove: 1 },
+  { sku: 'SUB-ACR-3',    name: 'Acrylic Clear Sheet 3mm 4x8',        cat: 'Substrate',  unit: 'sheet', cost: 95,  rop: 15, stock: { MAIN: 8,  PROD: 0,  FAB: 4 }, usage30: 26, lastMove: 2 },
+  { sku: 'SUB-FOAM-5',   name: 'Foam Board 5mm 4x8',                 cat: 'Substrate',  unit: 'sheet', cost: 28,  rop: 40, stock: { MAIN: 12, PROD: 6,  FAB: 8 }, usage30: 85, lastMove: 0 },
+  { sku: 'SUB-COR-4',    name: 'Corrugated PP Board 4mm 4x8',        cat: 'Substrate',  unit: 'sheet', cost: 22,  rop: 30, stock: { MAIN: 70, PROD: 0,  FAB: 10 }, usage30: 40, lastMove: 3 },
+  { sku: 'INK-UV-C',     name: 'UV Ink Cyan 1L Cartridge',           cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 2,  PROD: 3,  FAB: 0 }, usage30: 11, lastMove: 1 },
+  { sku: 'INK-UV-M',     name: 'UV Ink Magenta 1L Cartridge',        cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 5,  PROD: 3,  FAB: 0 }, usage30: 10, lastMove: 1 },
+  { sku: 'INK-UV-Y',     name: 'UV Ink Yellow 1L Cartridge',         cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 6,  PROD: 2,  FAB: 0 }, usage30: 9,  lastMove: 2 },
+  { sku: 'INK-UV-K',     name: 'UV Ink Black 1L Cartridge',          cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 0,  PROD: 1,  FAB: 0 }, usage30: 13, lastMove: 1 },
+  { sku: 'INK-ECO-SET',  name: 'Eco-Solvent Ink Set CMYK 1L',        cat: 'Ink',        unit: 'set',   cost: 520, rop: 3,  stock: { MAIN: 4,  PROD: 1,  FAB: 0 }, usage30: 4,  lastMove: 6 },
+  { sku: 'LAM-GL-137',   name: 'Lamination Film Gloss 1.37m x 50m',  cat: 'Lamination', unit: 'roll',  cost: 210, rop: 5,  stock: { MAIN: 3,  PROD: 0,  FAB: 2 }, usage30: 8,  lastMove: 2 },
+  { sku: 'LAM-MT-137',   name: 'Lamination Film Matt 1.37m x 50m',   cat: 'Lamination', unit: 'roll',  cost: 210, rop: 5,  stock: { MAIN: 7,  PROD: 0,  FAB: 1 }, usage30: 6,  lastMove: 4 },
+  { sku: 'LAM-FLOOR',    name: 'Anti-Slip Floor Lamination 1.37m',   cat: 'Lamination', unit: 'roll',  cost: 265, rop: 2,  stock: { MAIN: 3,  PROD: 0,  FAB: 0 }, usage30: 1,  lastMove: 12 },
+  { sku: 'CON-EYE-10',   name: 'Eyelets 10mm (box 500)',             cat: 'Consumable', unit: 'box',   cost: 38,  rop: 4,  stock: { MAIN: 6,  PROD: 2,  FAB: 3 }, usage30: 7,  lastMove: 3 },
+  { sku: 'CON-TAPE-2',   name: 'Double-Sided Tape 2in x 50m',        cat: 'Consumable', unit: 'roll',  cost: 16,  rop: 10, stock: { MAIN: 4,  PROD: 3,  FAB: 2 }, usage30: 20, lastMove: 1 },
+  { sku: 'CON-BLADE',    name: 'Plotter Blades 30 deg (pack 5)',     cat: 'Consumable', unit: 'pack',  cost: 55,  rop: 3,  stock: { MAIN: 5,  PROD: 1,  FAB: 0 }, usage30: 2,  lastMove: 9 },
+  { sku: 'CON-APP-122',  name: 'Application Tape 1.22m x 100m',      cat: 'Consumable', unit: 'roll',  cost: 88,  rop: 3,  stock: { MAIN: 4,  PROD: 0,  FAB: 2 }, usage30: 5,  lastMove: 4 },
+  { sku: 'PKG-TUBE-1',   name: 'Cardboard Tube 1m (bundle 25)',      cat: 'Packaging',  unit: 'bundle', cost: 45, rop: 4,  stock: { MAIN: 8,  PROD: 0,  FAB: 0 }, usage30: 6,  lastMove: 5 },
+  { sku: 'PKG-WRAP',     name: 'Stretch Film Roll 500mm',            cat: 'Packaging',  unit: 'roll',  cost: 24,  rop: 6,  stock: { MAIN: 10, PROD: 0,  FAB: 4 }, usage30: 9,  lastMove: 3 },
+  { sku: 'PRJ-CHROME-G', name: 'Gold Chrome Wrap Film 1.52m',        cat: 'Substrate',  unit: 'roll',  cost: 620, rop: 0,  stock: { MAIN: 4,  PROD: 0,  FAB: 0 }, usage30: 0,  lastMove: 148, project: 'JOB-2214 Prestige Motors wrap' },
+  { sku: 'PRJ-LED-NEON', name: 'LED Neon Flex 24V 50m Reel',         cat: 'Consumable', unit: 'reel',  cost: 480, rop: 0,  stock: { MAIN: 2,  PROD: 0,  FAB: 1 }, usage30: 0,  lastMove: 203, project: 'JOB-2088 Pavilion event booth' },
+  { sku: 'PRJ-FAB-BLK',  name: 'Blackout Display Fabric 3m Roll',    cat: 'Substrate',  unit: 'roll',  cost: 350, rop: 0,  stock: { MAIN: 3,  PROD: 0,  FAB: 0 }, usage30: 0,  lastMove: 96,  project: 'JOB-1976 KLCC exhibition' },
+  { sku: 'PRJ-ACR-AMB',  name: 'Acrylic Amber Sheet 5mm 4x8',        cat: 'Substrate',  unit: 'sheet', cost: 160, rop: 0,  stock: { MAIN: 0,  PROD: 0,  FAB: 6 }, usage30: 0,  lastMove: 71,  project: 'JOB-2141 Retail glorifier' },
+];
+
+// Seed movement history (most recent first). Balances are derived at render time.
+const now = Date.now();
+const daysAgo = d => new Date(now - d * 864e5);
+let movements = [
+  { ts: daysAgo(0),  sku: 'SUB-PVC-32',  store: 'PROD', type: 'OUT',      qty: -2,  ref: 'JOB-2301', by: 'Ravi' },
+  { ts: daysAgo(0),  sku: 'SUB-FOAM-5',  store: 'FAB',  type: 'OUT',      qty: -6,  ref: 'JOB-2305', by: 'Lim' },
+  { ts: daysAgo(1),  sku: 'INK-UV-K',    store: 'MAIN', type: 'OUT',      qty: -2,  ref: 'JOB-2298', by: 'Farid' },
+  { ts: daysAgo(1),  sku: 'SUB-EPVC-32', store: 'MAIN', type: 'IN',       qty: 8,   ref: 'INV-8792', by: 'Store' },
+  { ts: daysAgo(2),  sku: 'SUB-VIN-GL',  store: 'PROD', type: 'TRANSFER', qty: 2,   ref: 'From Main', by: 'Store' },
+  { ts: daysAgo(2),  sku: 'SUB-VIN-GL',  store: 'MAIN', type: 'TRANSFER', qty: -2,  ref: 'To Prod',  by: 'Store' },
+  { ts: daysAgo(3),  sku: 'SUB-GREY-2',  store: 'MAIN', type: 'OUT',      qty: -30, ref: 'JOB-2288', by: 'Ravi' },
+  { ts: daysAgo(4),  sku: 'LAM-GL-137',  store: 'FAB',  type: 'OUT',      qty: -1,  ref: 'JOB-2290', by: 'Lim' },
+  { ts: daysAgo(5),  sku: 'INK-UV-C',    store: 'MAIN', type: 'IN',       qty: 6,   ref: 'INV-8760', by: 'Store' },
+  { ts: daysAgo(6),  sku: 'SUB-ACR-3',   store: 'FAB',  type: 'ADJUST',   qty: -1,  ref: 'ST-0525 variance', by: 'Sharon' },
+];
+
+let receivedInvoices = [];
+let chargeOuts = [];
+let postedPresets = new Set();
+let paperCaptured = false;
+
+/* ================= HELPERS ================= */
+
+const RM = n => 'RM ' + n.toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const $ = id => document.getElementById(id);
+const totalQty = it => STORES.reduce((s, st) => s + (it.stock[st.id] || 0), 0);
+const itemValue = it => totalQty(it) * it.cost;
+const findItem = sku => ITEMS.find(i => i.sku === sku);
+
+function velocity(it) {
+  if (it.project && it.usage30 === 0 && it.lastMove > 60) return 'IDLE';
+  if (it.usage30 >= 15) return 'FAST';
+  if (it.usage30 >= 1) return 'SLOW';
+  return 'IDLE';
+}
+function stockStatus(it) {
+  const t = totalQty(it);
+  if (t === 0) return 'OUT';
+  if (velocity(it) === 'IDLE') return 'IDLE';
+  if (t <= it.rop) return 'LOW';
+  return 'OK';
+}
+const badge = (txt, cls) => `<span class="badge ${cls}">${txt}</span>`;
+const statusBadge = s => ({ OK: badge('OK', 'b-ok'), LOW: badge('LOW', 'b-warn'), OUT: badge('OUT', 'b-crit'), IDLE: badge('IDLE', 'b-idle') }[s]);
+const velBadge = v => ({ FAST: badge('FAST', 'b-ok'), SLOW: badge('SLOW', 'b-warn'), IDLE: badge('IDLE', 'b-idle') }[v]);
+const fmtDate = ts => ts.toLocaleDateString('en-MY', { day: 'numeric', month: 'short' }) + ' ' + ts.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' });
+
+function toast(msg, warn) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (warn ? ' warn' : '');
+  el.textContent = msg;
+  $('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4200);
+}
+
+function logMove(sku, store, type, qty, ref, by) {
+  movements.unshift({ ts: new Date(), sku, store, type, qty, ref, by: by || 'Store' });
+}
+
+/* ================= TABS ================= */
+
+document.querySelectorAll('#nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#nav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    $('tab-' + btn.dataset.tab).classList.add('active');
+    renderAll();
+  });
+});
+
+/* ================= DASHBOARD ================= */
+
+function renderDashboard() {
+  const totalValue = ITEMS.reduce((s, it) => s + itemValue(it), 0);
+  const lowCount = ITEMS.filter(it => ['LOW', 'OUT'].includes(stockStatus(it))).length;
+  const idleItems = ITEMS.filter(it => velocity(it) === 'IDLE' && totalQty(it) > 0);
+  const idleValue = idleItems.reduce((s, it) => s + itemValue(it), 0);
+  const today = new Date().toDateString();
+  const movesToday = movements.filter(m => m.ts.toDateString() === today).length;
+
+  $('kpi-row').innerHTML = `
+    <div class="kpi"><div class="label">Total Stock Value</div><div class="value">${RM(totalValue)}</div><div class="note">across 3 stores</div></div>
+    <div class="kpi"><div class="label">Active SKUs</div><div class="value">${ITEMS.length}</div><div class="note">${CATS.length} categories</div></div>
+    <div class="kpi ${lowCount ? 'alert' : ''}"><div class="label">Low / Out Alerts</div><div class="value">${lowCount}</div><div class="note">at or below reorder point</div></div>
+    <div class="kpi idle"><div class="label">Idle Project Stock</div><div class="value">${RM(idleValue)}</div><div class="note">${idleItems.length} items, no movement 60+ days</div></div>
+    <div class="kpi"><div class="label">Movements Today</div><div class="value">${movesToday}</div><div class="note">receipts, issues, transfers</div></div>`;
+  $('hdr-sku-count').textContent = ITEMS.length;
+  $('dashboard-ts').textContent = 'Data as of: ' + new Date().toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  // single-measure bar chart: one brand hue, direct labels, hover tooltip
+  const byCat = CATS.map(c => ({ cat: c, val: ITEMS.filter(i => i.cat === c).reduce((s, i) => s + itemValue(i), 0) }))
+    .sort((a, b) => b.val - a.val);
+  const max = Math.max(...byCat.map(r => r.val), 1);
+  $('cat-chart').innerHTML = byCat.map(r => `
+    <div class="row">
+      <div class="cat">${r.cat}</div>
+      <div class="track"><div class="bar" style="width:${(r.val / max * 100).toFixed(1)}%"
+        data-tip="${r.cat}: ${RM(r.val)} on hand (${ITEMS.filter(i => i.cat === r.cat).length} SKUs)"></div></div>
+      <div class="val">${RM(r.val)}</div>
+    </div>`).join('');
+
+  const counts = { FAST: 0, SLOW: 0, IDLE: 0 };
+  ITEMS.forEach(it => counts[velocity(it)]++);
+  $('velocity-strip').innerHTML = `
+    ${badge('FAST &middot; ' + counts.FAST + ' SKUs', 'b-ok')}
+    ${badge('SLOW &middot; ' + counts.SLOW + ' SKUs', 'b-warn')}
+    ${badge('IDLE &middot; ' + counts.IDLE + ' SKUs', 'b-idle')}`;
+
+  const lows = ITEMS.filter(it => ['LOW', 'OUT'].includes(stockStatus(it)))
+    .sort((a, b) => (totalQty(a) - a.rop) - (totalQty(b) - b.rop));
+  $('low-stock-body').innerHTML = lows.length ? lows.map(it => `
+    <tr><td>${it.sku}</td><td>${it.name}</td><td class="num">${totalQty(it)}</td><td class="num">${it.rop}</td><td>${statusBadge(stockStatus(it))}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="empty">No items below reorder point.</td></tr>';
+
+  $('idle-body').innerHTML = idleItems.sort((a, b) => b.lastMove - a.lastMove).map(it => `
+    <tr><td>${it.name}</td><td>${it.project || '-'}</td><td class="num">${it.lastMove}</td><td class="num">${itemValue(it).toLocaleString('en-MY')}</td></tr>`).join('')
+    || '<tr><td colspan="4" class="empty">No idle stock.</td></tr>';
+}
+
+// bar hover tooltip
+const tip = $('tooltip');
+document.addEventListener('mousemove', e => {
+  const t = e.target.closest('[data-tip]');
+  if (t) {
+    tip.style.display = 'block';
+    tip.textContent = t.dataset.tip;
+    tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 280) + 'px';
+    tip.style.top = (e.clientY + 14) + 'px';
+  } else tip.style.display = 'none';
+});
+
+/* ================= INVENTORY ================= */
+
+function initInventoryControls() {
+  $('inv-cat').innerHTML = '<option value="">All categories</option>' + CATS.map(c => `<option>${c}</option>`).join('');
+  $('inv-store').innerHTML = '<option value="">All stores</option>' + STORES.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  ['inv-search', 'inv-cat', 'inv-store', 'inv-status'].forEach(id => $(id).addEventListener('input', renderInventory));
+  $('tr-item').innerHTML = ITEMS.map(i => `<option value="${i.sku}">${i.sku} - ${i.name}</option>`).join('');
+  $('tr-from').innerHTML = STORES.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  $('tr-to').innerHTML = STORES.map(s => `<option value="${s.id}" ${s.id === 'PROD' ? 'selected' : ''}>${s.name}</option>`).join('');
+  filterTransferDropdowns();
+  $('tr-from').addEventListener('change', filterTransferDropdowns);
+  $('tr-to').addEventListener('change', filterTransferDropdowns);
+  $('tr-post').addEventListener('click', postTransfer);
+}
+
+function filterTransferDropdowns() {
+  const fromVal = $('tr-from').value;
+  const toVal = $('tr-to').value;
+  // Rebuild To options excluding selected From
+  const toOpts = STORES.filter(s => s.id !== fromVal);
+  const toCurrent = toOpts.find(s => s.id === toVal) ? toVal : toOpts[0]?.id;
+  $('tr-to').innerHTML = toOpts.map(s => `<option value="${s.id}" ${s.id === toCurrent ? 'selected' : ''}>${s.name}</option>`).join('');
+}
+
+function renderInventory() {
+  const q = $('inv-search').value.toLowerCase();
+  const cat = $('inv-cat').value, store = $('inv-store').value, status = $('inv-status').value;
+  const rows = ITEMS.filter(it =>
+    (!q || it.sku.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)) &&
+    (!cat || it.cat === cat) &&
+    (!store || (it.stock[store] || 0) > 0) &&
+    (!status || stockStatus(it) === status)
+  );
+  $('inv-body').innerHTML = rows.map(it => `
+    <tr class="clickable" onclick="openBinCard('${it.sku}')">
+      <td>${it.sku}</td>
+      <td>${it.name}${it.project ? '<br><span class="conf">Bought for ' + it.project + '</span>' : ''}</td>
+      <td>${it.cat}</td>
+      <td class="num">${it.stock.MAIN || 0}</td>
+      <td class="num">${it.stock.PROD || 0}</td>
+      <td class="num">${it.stock.FAB || 0}</td>
+      <td class="num"><strong>${totalQty(it)}</strong></td>
+      <td class="num">${it.rop || '-'}</td>
+      <td>${velBadge(velocity(it))}</td>
+      <td>${statusBadge(stockStatus(it))}</td>
+    </tr>`).join('') || '<tr><td colspan="10" class="empty">No items match the filters.</td></tr>';
+}
+
+function postTransfer() {
+  const sku = $('tr-item').value, from = $('tr-from').value, to = $('tr-to').value;
+  const qty = parseInt($('tr-qty').value, 10) || 0;
+  const it = findItem(sku);
+  if (from === to) return toast('Choose two different stores.', true);
+  if (qty < 1) return toast('Quantity must be at least 1.', true);
+  if ((it.stock[from] || 0) < qty) return toast(`Only ${it.stock[from] || 0} ${it.unit} at ${STORES.find(s => s.id === from).name}.`, true);
+  // H7: transfer loading animation
+  $('tr-post').disabled = true;
+  $('transfer-progress').style.display = 'flex';
+  setTimeout(() => {
+    $('transfer-progress').style.display = 'none';
+    $('tr-post').disabled = false;
+    it.stock[from] -= qty;
+    it.stock[to] = (it.stock[to] || 0) + qty;
+    it.lastMove = 0;
+    logMove(sku, from, 'TRANSFER', -qty, 'To ' + STORES.find(s => s.id === to).short);
+    logMove(sku, to, 'TRANSFER', qty, 'From ' + STORES.find(s => s.id === from).short);
+    toast(`Transferred ${qty} ${it.unit} of ${it.sku}.`);
+    renderAll();
+  }, 500);
+}
+
+/* ================= BIN CARD ================= */
+
+function openBinCard(sku) {
+  const it = findItem(sku);
+  $('bincard-title').textContent = `Digital Bin Card - ${it.sku}`;
+  $('bincard-sub').textContent = `${it.name} | ${totalQty(it)} ${it.unit} on hand across all stores`;
+  const rows = movements.filter(m => m.sku === sku).slice(0, 25);
+  // walk balances backwards from current per-store quantity
+  const bal = {};
+  STORES.forEach(s => bal[s.id] = it.stock[s.id] || 0);
+  const rendered = rows.map(m => {
+    const b = bal[m.store];
+    bal[m.store] -= m.qty;
+    return `<tr>
+      <td>${fmtDate(m.ts)}</td>
+      <td>${badge(m.type, m.qty >= 0 ? 'b-ok' : 'b-neutral')} <span class="conf">${STORES.find(s => s.id === m.store).short}</span></td>
+      <td>${m.ref}</td>
+      <td class="num">${m.qty > 0 ? '+' : ''}${m.qty}</td>
+      <td class="num">${b}</td>
+    </tr>`;
+  }).join('');
+  $('bincard-body').innerHTML = rendered || '<tr><td colspan="5" class="empty">No movements recorded for this item yet.</td></tr>';
+  $('bincard-backdrop').style.display = 'block';
+}
+function closeBinCard() { $('bincard-backdrop').style.display = 'none'; }
+$('bincard-backdrop').addEventListener('click', e => { if (e.target === $('bincard-backdrop')) closeBinCard(); });
+
+/* ================= INVOICE OCR ================= */
+
+const INVOICE_PRESETS = [
+  {
+    supplier: 'Bintang Media Supplies Sdn Bhd', ref: 'INV-8841', date: '28 Jun 2026', terms: 'Net 30',
+    lines: [
+      { text: 'ECO PVC GREEN VINYL 3.2M X 50M ROLL', qty: 8, unit: 360, match: 'SUB-EPVC-32', conf: 98 },
+      { text: 'UV INK CYAN 1L CART',                 qty: 6, unit: 142, match: 'INK-UV-C',    conf: 97 },
+      { text: 'UV INK BLACK 1L CART',                qty: 8, unit: 142, match: 'INK-UV-K',    conf: 96 },
+      { text: 'LAM FILM GLOSS 1.37 X 50M',           qty: 4, unit: 205, match: 'LAM-GL-137',  conf: 94 },
+    ],
+  },
+  {
+    supplier: 'Prisma Substrates (M) Sdn Bhd', ref: 'INV-2207', date: '30 Jun 2026', terms: 'COD',
+    lines: [
+      { text: 'S/A VINYL GLOSS 1.52M X 50M',   qty: 12, unit: 178, match: 'SUB-VIN-GL', conf: 97 },
+      { text: 'FOAM BOARD 5MM 4FT X 8FT',      qty: 40, unit: 26,  match: 'SUB-FOAM-5', conf: 98 },
+      { text: 'CHROME WRAP FILM SILVER 1.52M', qty: 2,  unit: 640, match: null,         conf: 91 },
+    ],
+  },
+];
+
+let ocrLines = [];
+
+function renderInvoiceDoc() {
+  const p = INVOICE_PRESETS[+$('inv-preset').value];
+  $('invoice-doc').innerHTML = `
+    <div class="doc">
+      <h4>${p.supplier}</h4>
+      <div class="doc-meta">TAX INVOICE ${p.ref} &nbsp;|&nbsp; ${p.date} &nbsp;|&nbsp; Terms: ${p.terms}<br>
+      Bill to: KB Colour Image Sdn Bhd, Bukit Permai Industrial Park, Cheras</div>
+      <table>
+        <thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit RM</th><th class="num">Amount</th></tr></thead>
+        <tbody>${p.lines.map(l => `<tr><td>${l.text}</td><td class="num">${l.qty}</td><td class="num">${l.unit.toFixed(2)}</td><td class="num">${(l.qty * l.unit).toFixed(2)}</td></tr>`).join('')}</tbody>
+      </table>
+      <div class="right" style="margin-top:10px; font-weight:600;">TOTAL: RM ${p.lines.reduce((s, l) => s + l.qty * l.unit, 0).toFixed(2)}</div>
+    </div>`;
+  $('ocr-result-card').style.display = 'none';
+}
+
+function runInvoiceOCR() {
+  $('ocr-run').disabled = true;
+  $('ocr-progress').style.display = 'flex';
+  $('ocr-result-card').style.display = 'none';
+  setTimeout(() => {
+    $('ocr-progress').style.display = 'none';
+    $('ocr-run').disabled = false;
+    const p = INVOICE_PRESETS[+$('inv-preset').value];
+    ocrLines = p.lines.map(l => ({ ...l }));
+    const avg = Math.round(ocrLines.reduce((s, l) => s + l.conf, 0) / ocrLines.length);
+    $('ocr-conf').textContent = `avg confidence ${avg}%`;
+    const skuOptions = sel => ['<option value="">No match - create new SKU</option>']
+      .concat(ITEMS.map(i => `<option value="${i.sku}" ${i.sku === sel ? 'selected' : ''}>${i.sku} - ${i.name}</option>`)).join('');
+    $('ocr-lines').innerHTML = ocrLines.map((l, i) => `
+      <tr>
+        <td>${l.text}<br><span class="conf">${l.conf}% confidence${l.match ? '' : ' &middot; no SKU match, review'}</span></td>
+        <td><select data-i="${i}" class="ocr-sku">${skuOptions(l.match)}</select></td>
+        <td class="num"><input type="number" min="0" value="${l.qty}" data-i="${i}" class="ocr-qty"></td>
+        <td class="num"><input type="number" min="0" step="0.01" value="${l.unit}" data-i="${i}" class="ocr-unit"></td>
+      </tr>`).join('');
+    $('ocr-store').innerHTML = STORES.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    $('ocr-result-card').style.display = 'block';
+    toast(`OCR captured ${ocrLines.length} lines from ${p.ref}.`);
+  }, 1300);
+}
+
+function postInvoice() {
+  const presetIdx = +$('inv-preset').value;
+  // C1: duplicate invoice posting guard
+  if (postedPresets.has(presetIdx)) return toast('This invoice has already been posted.', true);
+  const p = INVOICE_PRESETS[presetIdx];
+  const store = $('ocr-store').value;
+  document.querySelectorAll('.ocr-sku').forEach(el => ocrLines[+el.dataset.i].match = el.value || null);
+  document.querySelectorAll('.ocr-qty').forEach(el => ocrLines[+el.dataset.i].qty = +el.value || 0);
+  document.querySelectorAll('.ocr-unit').forEach(el => ocrLines[+el.dataset.i].unit = +el.value || 0);
+
+  let value = 0;
+  ocrLines.forEach(l => {
+    let it = l.match ? findItem(l.match) : null;
+    if (!it) {
+      const sku = 'PRJ-NEW-' + String(ITEMS.length + 1).padStart(3, '0');
+      it = { sku, name: l.text.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()), cat: 'Substrate', unit: 'unit', cost: l.unit, rop: 0, stock: { MAIN: 0, PROD: 0, FAB: 0 }, usage30: 0, lastMove: 0, project: 'Unassigned - tag to job' };
+      ITEMS.push(it);
+      toast(`New one-off SKU ${sku} created. Tag it to a job so idle tracking can watch it.`, true);
+    }
+    it.stock[store] = (it.stock[store] || 0) + l.qty;
+    // H1: removed cost overwrite line
+    it.lastMove = 0;
+    logMove(it.sku, store, 'IN', l.qty, p.ref);
+    value += l.qty * l.unit;
+  });
+  receivedInvoices.unshift({ ref: p.ref, supplier: p.supplier, lines: ocrLines.length, value, ts: new Date() });
+  $('received-body').innerHTML = receivedInvoices.map(r =>
+    `<tr><td>${r.ref}</td><td>${r.supplier}</td><td class="num">${r.lines}</td><td class="num">${RM(r.value)}</td><td>${fmtDate(r.ts)}</td></tr>`).join('');
+  // C1: mark preset as posted, hide OCR result, disable post button, disable dropdown option
+  postedPresets.add(presetIdx);
+  $('ocr-result-card').style.display = 'none';
+  $('ocr-post').disabled = true;
+  // Disable the posted option in dropdown
+  const presetOpt = $('inv-preset').querySelector(`option[value="${presetIdx}"]`);
+  if (presetOpt) { presetOpt.disabled = true; presetOpt.textContent += ' (Posted)'; }
+  toast(`${p.ref} posted. Stock levels updated at ${STORES.find(s => s.id === store).name}.`);
+  renderAll();
+}
+
+/* ================= CHARGE OUT ================= */
+
+const PAPER_FORM = {
+  job: 'JOB-2311', staff: 'Hafiz', store: 'PROD',
+  lines: [
+    { sku: 'SUB-PVC-32', qty: 3 },
+    { sku: 'INK-UV-M',   qty: 2 },
+    { sku: 'CON-TAPE-2', qty: 4 },
+  ],
+};
+
+function renderPaperDoc() {
+  $('paper-doc').innerHTML = `
+    <div class="doc">
+      <h4>KB COLOUR IMAGE SDN BHD</h4>
+      <div class="doc-meta">MATERIAL CHARGE OUT SLIP &nbsp;|&nbsp; No. 04471</div>
+      <table>
+        <tbody>
+          <tr><td>Job No.</td><td class="handwritten">${PAPER_FORM.job}</td></tr>
+          <tr><td>Store</td><td class="handwritten">Production Floor</td></tr>
+          <tr><td>Issued To</td><td class="handwritten">${PAPER_FORM.staff}</td></tr>
+          ${PAPER_FORM.lines.map(l => { const it = findItem(l.sku); return `<tr><td class="handwritten">${it.name}</td><td class="handwritten">${l.qty} ${it.unit}</td></tr>`; }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function coLineRow(sku, qty, storeId) {
+  const store = storeId || ($('co-store') ? $('co-store').value : 'MAIN');
+  const opts = ITEMS.filter(i => (i.stock[store] || 0) > 0).map(i => `<option value="${i.sku}" ${i.sku === sku ? 'selected' : ''}>${i.sku} - ${i.name} (${i.stock[store] || 0} ${i.unit})</option>`).join('');
+  return `<tr>
+    <td><select class="co-sku">${opts || '<option value="">No items in stock at this store</option>'}</select></td>
+    <td class="num"><input type="number" class="co-qty" min="1" value="${qty || 1}"></td>
+    <td><button class="btn btn-ghost" style="min-height:38px; padding:6px 12px;" onclick="this.closest('tr').remove()">x</button></td>
+  </tr>`;
+}
+
+function initChargeOut() {
+  $('co-store').innerHTML = STORES.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  $('co-lines').innerHTML = coLineRow();
+  $('co-addline').addEventListener('click', () => $('co-lines').insertAdjacentHTML('beforeend', coLineRow()));
+  $('co-post').addEventListener('click', postChargeOut);
+  $('paper-ocr').addEventListener('click', capturePaperForm);
+  // C2: rebuild line dropdowns when store changes
+  $('co-store').addEventListener('change', () => {
+    $('co-lines').innerHTML = coLineRow();
+  });
+  renderPaperDoc();
+}
+
+function postChargeOut() {
+  const job = $('co-job').value.trim(), staff = $('co-staff').value.trim() || 'Floor crew';
+  const store = $('co-store').value;
+  if (!job) return toast('Enter a job number. Every issue is charged to a job.', true);
+  const rows = [...document.querySelectorAll('#co-lines tr')];
+  if (!rows.length) return toast('Add at least one line.', true);
+  const lines = rows.map(r => ({ sku: r.querySelector('.co-sku').value, qty: +r.querySelector('.co-qty').value || 0 })).filter(l => l.qty > 0);
+  for (const l of lines) {
+    const it = findItem(l.sku);
+    if ((it.stock[store] || 0) < l.qty) return toast(`Not enough ${it.sku} at this store (${it.stock[store] || 0} ${it.unit} on hand).`, true);
+  }
+  let value = 0;
+  lines.forEach(l => {
+    const it = findItem(l.sku);
+    it.stock[store] -= l.qty;
+    it.usage30 += l.qty;
+    it.lastMove = 0;
+    logMove(l.sku, store, 'OUT', -l.qty, job, staff);
+    value += l.qty * it.cost;
+  });
+  chargeOuts.unshift({ job, staff, store, lines: lines.length, value, ts: new Date() });
+  renderChargeOutHistory();
+  $('co-job').value = ''; $('co-staff').value = '';
+  $('co-lines').innerHTML = coLineRow();
+  toast(`Charged ${lines.length} line(s) to ${job}. ${RM(value)} of material issued.`);
+  renderAll();
+}
+
+function renderChargeOutHistory() {
+  $('co-history').innerHTML = chargeOuts.map(c =>
+    `<tr><td>${c.job}</td><td>${STORES.find(s => s.id === c.store).short}</td><td>${c.staff}</td><td class="num">${c.lines}</td><td class="num">${RM(c.value)}</td></tr>`).join('')
+    || '<tr><td colspan="5" class="empty">No charge outs posted yet in this session.</td></tr>';
+}
+
+function capturePaperForm() {
+  if (paperCaptured) return toast('Paper slip 04471 has already been captured.', true);
+  $('paper-ocr').disabled = true;
+  $('paper-progress').style.display = 'flex';
+  setTimeout(() => {
+    $('paper-progress').style.display = 'none';
+    // C3: keep button disabled after capture
+    paperCaptured = true;
+    $('co-job').value = PAPER_FORM.job;
+    $('co-staff').value = PAPER_FORM.staff;
+    $('co-store').value = PAPER_FORM.store;
+    $('co-lines').innerHTML = PAPER_FORM.lines.map(l => coLineRow(l.sku, l.qty, PAPER_FORM.store)).join('');
+    toast('Paper slip 04471 captured into the form. Review the lines, then post.');
+  }, 1300);
+}
+
+/* ================= STOCK TAKE ================= */
+
+function initStockTake() {
+  $('st-store').innerHTML = STORES.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  $('st-cat').innerHTML = '<option value="">All categories</option>' + CATS.map(c => `<option>${c}</option>`).join('');
+  $('st-store').addEventListener('change', renderStockTake);
+  $('st-cat').addEventListener('change', renderStockTake);
+  $('st-post').addEventListener('click', postStockTake);
+}
+
+function renderStockTake() {
+  const store = $('st-store').value, cat = $('st-cat').value;
+  const rows = ITEMS.filter(it => (it.stock[store] || 0) > 0 || it.rop > 0).filter(it => !cat || it.cat === cat);
+  $('st-body').innerHTML = rows.map(it => {
+    const sys = it.stock[store] || 0;
+    return `<tr data-sku="${it.sku}">
+      <td>${it.sku}</td><td>${it.name}</td><td>${it.unit}</td>
+      <td class="num st-sys">${sys}</td>
+      <td class="num"><input type="number" class="st-count" min="0" placeholder="${sys}" style="width:90px; min-height:38px; padding:6px 8px;"></td>
+      <td class="num st-var">-</td><td class="num st-varrm">-</td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('.st-count').forEach(inp => inp.addEventListener('input', e => {
+    const tr = e.target.closest('tr');
+    const it = findItem(tr.dataset.sku);
+    const sys = it.stock[$('st-store').value] || 0;
+    if (e.target.value === '') { tr.querySelector('.st-var').textContent = '-'; tr.querySelector('.st-varrm').textContent = '-'; return; }
+    const v = (+e.target.value || 0) - sys;
+    tr.querySelector('.st-var').innerHTML = v === 0 ? '0' : `<strong style="color:${v < 0 ? 'var(--crit-ink)' : 'var(--ok-ink)'}">${v > 0 ? '+' : ''}${v}</strong>`;
+    tr.querySelector('.st-varrm').textContent = (v * it.cost).toLocaleString('en-MY');
+  }));
+  // H8: update summary whenever inputs change
+  document.querySelectorAll('.st-count').forEach(inp => inp.addEventListener('input', updateStockTakeSummary));
+  updateStockTakeSummary();
+}
+
+function updateStockTakeSummary() {
+  const store = $('st-store').value;
+  let counted = 0, totalVar = 0, totalVarRM = 0;
+  document.querySelectorAll('#st-body tr').forEach(tr => {
+    const inp = tr.querySelector('.st-count');
+    if (inp && inp.value !== '') {
+      const it = findItem(tr.dataset.sku);
+      const sys = it.stock[store] || 0;
+      const v = (+inp.value || 0) - sys;
+      counted++;
+      totalVar += v;
+      totalVarRM += v * it.cost;
+    }
+  });
+  if (counted > 0) {
+    $('st-summary').style.display = 'flex';
+    $('st-sum-items').textContent = counted;
+    $('st-sum-units').innerHTML = totalVar === 0 ? '0' : `<span style="color:${totalVar < 0 ? 'var(--crit-ink)' : 'var(--ok-ink)'}">${totalVar > 0 ? '+' : ''}${totalVar}</span>`;
+    $('st-sum-rm').innerHTML = `<span style="color:${totalVarRM < 0 ? 'var(--crit-ink)' : totalVarRM > 0 ? 'var(--ok-ink)' : 'var(--ink)'}">${RM(Math.abs(totalVarRM))}</span>`;
+  } else {
+    $('st-summary').style.display = 'none';
+  }
+}
+
+function postStockTake() {
+  const store = $('st-store').value;
+  const ref = 'ST-' + new Date().toISOString().slice(5, 10).replace('-', '');
+  let adjusted = 0, varValue = 0;
+  const details = [];
+  // C4: floor check - scan for negative stock first
+  let blocked = false;
+  document.querySelectorAll('#st-body tr').forEach(tr => {
+    const inp = tr.querySelector('.st-count');
+    if (inp.value === '') return;
+    const it = findItem(tr.dataset.sku);
+    const newQty = +inp.value || 0;
+    if (newQty < 0) {
+      toast(`${it.sku}: counted qty cannot be negative. Skipping.`, true);
+      blocked = true;
+    }
+  });
+  if (blocked) return;
+  document.querySelectorAll('#st-body tr').forEach(tr => {
+    const inp = tr.querySelector('.st-count');
+    if (inp.value === '') return;
+    const it = findItem(tr.dataset.sku);
+    const sys = it.stock[store] || 0;
+    const v = (+inp.value || 0) - sys;
+    if (v !== 0) {
+      it.stock[store] = +inp.value;
+      it.lastMove = 0;
+      logMove(it.sku, store, 'ADJUST', v, ref + ' variance', 'Count team');
+      adjusted++;
+      varValue += v * it.cost;
+      details.push(`${it.sku}: ${v > 0 ? '+' : ''}${v} ${it.unit} (${RM(Math.abs(v * it.cost))})`);
+    }
+  });
+  if (!adjusted) return toast('No counted quantities differ from system. Nothing to post.', true);
+  $('st-report').style.display = 'block';
+  $('st-report-body').innerHTML = `
+    <p><strong>${ref}</strong> at ${STORES.find(s => s.id === store).name}: ${adjusted} adjustment(s) posted, net variance ${RM(varValue)}.</p>
+    <ul style="margin:8px 0 0 20px; color:var(--ink-2);">${details.map(d => `<li>${d}</li>`).join('')}</ul>`;
+  toast(`Stock take ${ref} posted. ${adjusted} adjustment(s) written to bin cards.`);
+  renderStockTake();
+  renderAll();
+}
+
+/* ================= SQL SCHEMA ================= */
+
+const SCHEMAS = {
+  'Items & Stores': `CREATE TABLE stores (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code          VARCHAR(10) UNIQUE NOT NULL,      -- MAIN / PROD / FAB
+  name          VARCHAR(120) NOT NULL,
+  location      VARCHAR(200)
+);
+
+CREATE TABLE items (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sku           VARCHAR(30) UNIQUE NOT NULL,
+  name          VARCHAR(200) NOT NULL,
+  category      VARCHAR(30) NOT NULL CHECK (category IN
+                ('substrate','ink','lamination','consumable','packaging')),
+  unit_measure  VARCHAR(20) NOT NULL,             -- roll, sheet, cart, box
+  unit_cost_myr NUMERIC(10,2) NOT NULL,
+  reorder_point NUMERIC(10,2) DEFAULT 0,
+  project_tag   VARCHAR(60),                      -- set for one-off project buys
+  created_at    TIMESTAMPTZ DEFAULT now()
+);`,
+  'Stock Levels': `CREATE TABLE stock_levels (
+  item_id       UUID REFERENCES items(id),
+  store_id      UUID REFERENCES stores(id),
+  qty_on_hand   NUMERIC(12,2) NOT NULL DEFAULT 0,
+  updated_at    TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (item_id, store_id)
+);
+
+-- velocity view: 30-day usage classifies FAST / SLOW / IDLE
+CREATE VIEW item_velocity AS
+SELECT i.id, i.sku,
+  COALESCE(SUM(-m.qty) FILTER (WHERE m.movement_type = 'OUT'
+    AND m.created_at > now() - interval '30 days'), 0) AS usage_30d,
+  MAX(m.created_at) AS last_movement_at
+FROM items i
+LEFT JOIN stock_movements m ON m.item_id = i.id
+GROUP BY i.id, i.sku;`,
+  'Stock Movements': `CREATE TABLE stock_movements (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  item_id       UUID NOT NULL REFERENCES items(id),
+  store_id      UUID NOT NULL REFERENCES stores(id),
+  movement_type VARCHAR(12) NOT NULL CHECK (movement_type IN
+                ('IN','OUT','TRANSFER','ADJUST')),
+  qty           NUMERIC(12,2) NOT NULL,           -- signed: + receipt, - issue
+  reference     VARCHAR(60) NOT NULL,             -- INV-xxxx, JOB-xxxx, ST-xxxx
+  performed_by  VARCHAR(80),
+  created_at    TIMESTAMPTZ DEFAULT now()
+);
+
+-- the digital bin card is simply this table filtered by (item_id, store_id)
+CREATE INDEX idx_movements_bincard
+  ON stock_movements (item_id, store_id, created_at DESC);`,
+  'Invoice Capture': `CREATE TABLE supplier_invoices (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  supplier_name VARCHAR(160) NOT NULL,
+  invoice_ref   VARCHAR(40) NOT NULL,
+  invoice_date  DATE,
+  image_url     TEXT,                             -- scanned or photographed source
+  ocr_confidence NUMERIC(5,2),
+  status        VARCHAR(12) DEFAULT 'review'
+                CHECK (status IN ('review','posted','rejected')),
+  received_store UUID REFERENCES stores(id),
+  posted_at     TIMESTAMPTZ
+);
+
+CREATE TABLE supplier_invoice_lines (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  invoice_id    UUID NOT NULL REFERENCES supplier_invoices(id),
+  detected_text VARCHAR(240) NOT NULL,            -- raw OCR line
+  line_confidence NUMERIC(5,2),
+  matched_item_id UUID REFERENCES items(id),      -- NULL until reviewed or auto-matched
+  qty           NUMERIC(12,2) NOT NULL,
+  unit_cost_myr NUMERIC(10,2) NOT NULL
+);`,
+  'Charge Outs': `CREATE TABLE charge_outs (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_number    VARCHAR(30) NOT NULL,             -- every issue ties to a job
+  store_id      UUID NOT NULL REFERENCES stores(id),
+  issued_to     VARCHAR(80),
+  source        VARCHAR(10) DEFAULT 'digital'
+                CHECK (source IN ('digital','ocr')),  -- paper slip capture = 'ocr'
+  slip_image_url TEXT,
+  posted_at     TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE charge_out_lines (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  charge_out_id UUID NOT NULL REFERENCES charge_outs(id),
+  item_id       UUID NOT NULL REFERENCES items(id),
+  qty           NUMERIC(12,2) NOT NULL CHECK (qty > 0),
+  unit_cost_myr NUMERIC(10,2) NOT NULL            -- cost snapshot at issue time
+);`,
+  'Stock Takes': `CREATE TABLE stock_takes (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reference     VARCHAR(20) UNIQUE NOT NULL,      -- ST-0702
+  store_id      UUID NOT NULL REFERENCES stores(id),
+  counted_by    VARCHAR(80),
+  posted_at     TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE stock_take_lines (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  stock_take_id UUID NOT NULL REFERENCES stock_takes(id),
+  item_id       UUID NOT NULL REFERENCES items(id),
+  system_qty    NUMERIC(12,2) NOT NULL,
+  counted_qty   NUMERIC(12,2) NOT NULL,
+  variance      NUMERIC(12,2) GENERATED ALWAYS AS
+                (counted_qty - system_qty) STORED
+);`,
+};
+
+function initSchema() {
+  const keys = Object.keys(SCHEMAS);
+  $('schema-nav').innerHTML = keys.map((k, i) =>
+    `<button class="btn ${i === 0 ? 'btn-primary' : 'btn-ghost'}" data-k="${k}">${k}</button>`).join('');
+  const show = k => {
+    $('schema-code').innerHTML = SCHEMAS[k]
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/\b(CREATE TABLE|CREATE VIEW|CREATE INDEX|PRIMARY KEY|REFERENCES|NOT NULL|DEFAULT|UNIQUE|CHECK|IN|GENERATED ALWAYS AS|STORED|LEFT JOIN|GROUP BY|SELECT|FROM|WHERE|ON|AS)\b/g, '<span class="kw">$1</span>');
+    document.querySelectorAll('#schema-nav button').forEach(b => {
+      b.className = 'btn ' + (b.dataset.k === k ? 'btn-primary' : 'btn-ghost');
+    });
+  };
+  $('schema-nav').addEventListener('click', e => { if (e.target.dataset.k) show(e.target.dataset.k); });
+  show(keys[0]);
+}
+
+/* ================= BOOT ================= */
+
+// C5: deep-copy seed state for reset
+const SEED_ITEMS = JSON.parse(JSON.stringify(ITEMS));
+const SEED_MOVEMENTS = JSON.parse(JSON.stringify(movements, (k, v) => v instanceof Date ? v.toISOString() : v));
+
+function renderAll() {
+  renderDashboard();
+  renderInventory();
+  renderStockTake();
+}
+
+function resetDemo() {
+  if (!confirm('Reset the demo to its starting state? All posted invoices, charge outs, and stock changes will be lost.')) return;
+  // Restore ITEMS from seed
+  ITEMS.length = 0;
+  JSON.parse(JSON.stringify(SEED_ITEMS)).forEach(it => ITEMS.push(it));
+  // Restore movements from seed
+  movements.length = 0;
+  JSON.parse(SEED_MOVEMENTS, (k, v) => {
+    if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v)) return new Date(v);
+    return v;
+  }).forEach(m => movements.push(m));
+  // Clear session state
+  receivedInvoices.length = 0;
+  chargeOuts.length = 0;
+  postedPresets.clear();
+  paperCaptured = false;
+  // Re-enable buttons
+  $('paper-ocr').disabled = false;
+  $('ocr-post').disabled = false;
+  $('ocr-result-card').style.display = 'none';
+  $('st-report').style.display = 'none';
+  // Reset invoice preset dropdown
+  $('inv-preset').querySelectorAll('option').forEach(opt => {
+    opt.disabled = false;
+    opt.textContent = opt.textContent.replace(' (Posted)', '');
+  });
+  // Re-render everything
+  $('received-body').innerHTML = '<tr><td colspan="5" class="empty">Nothing captured yet in this session.</td></tr>';
+  $('co-history').innerHTML = '<tr><td colspan="5" class="empty">No charge outs posted yet in this session.</td></tr>';
+  $('co-lines').innerHTML = coLineRow();
+  $('co-job').value = '';
+  $('co-staff').value = '';
+  renderInvoiceDoc();
+  renderPaperDoc();
+  renderAll();
+  toast('Demo reset to starting state.');
+}
+
+initInventoryControls();
+initChargeOut();
+initStockTake();
+initSchema();
+renderInvoiceDoc();
+$('inv-preset').addEventListener('change', renderInvoiceDoc);
+$('ocr-run').addEventListener('click', runInvoiceOCR);
+$('ocr-post').addEventListener('click', postInvoice);
+$('reset-demo').addEventListener('click', resetDemo);
+renderAll();
+</script>
+</body>
+</html>
