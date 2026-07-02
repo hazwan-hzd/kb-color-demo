@@ -236,6 +236,16 @@
   .transfer-progress { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--brand-deep); }
   .transfer-progress .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); animation: pulse 0.9s ease-in-out infinite; }
   .dashboard-ts { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+
+  /* Thumbnails & Lightbox */
+  .item-thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+  .item-thumb:hover { border-color: var(--brand); cursor: zoom-in; }
+  .item-name-cell { display: flex; gap: 12px; align-items: center; }
+  .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; flex-direction: column; cursor: zoom-out; }
+  .lightbox img { max-width: 100%; max-height: 80vh; border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.6); }
+  .lightbox .lb-caption { color: #fff; margin-top: 14px; font-size: 16px; font-weight: 500; text-align: center; max-width: 600px; }
+  .lightbox .btn-close { position: absolute; top: 24px; right: 24px; background: rgba(255,255,255,0.15); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .lightbox .btn-close:hover { background: rgba(255,255,255,0.25); }
 </style>
 </head>
 <body>
@@ -476,6 +486,12 @@
   </div>
 </div>
 
+<div class="lightbox" id="img-lightbox" onclick="closeLightbox()">
+  <button class="btn-close" onclick="closeLightbox()">&times;</button>
+  <img id="lb-img" src="" alt="Expanded View" onclick="event.stopPropagation()">
+  <div class="lb-caption" id="lb-title"></div>
+</div>
+
 <div id="tooltip"></div>
 <div id="toasts"></div>
 
@@ -494,33 +510,33 @@ const CATS = ['Substrate', 'Ink', 'Lamination', 'Consumable', 'Packaging'];
 
 // usage30 = units consumed in the last 30 days; lastMove = days since last movement
 const ITEMS = [
-  { sku: 'SUB-EPVC-32',  name: 'Eco-PVC Green Vinyl 3.2m Roll',      cat: 'Substrate',  unit: 'roll',  cost: 380, rop: 10, stock: { MAIN: 6,  PROD: 3,  FAB: 0 }, usage30: 22, lastMove: 1 },
-  { sku: 'SUB-PVC-32',   name: 'Standard PVC Flex 3.2m Roll',        cat: 'Substrate',  unit: 'roll',  cost: 290, rop: 12, stock: { MAIN: 15, PROD: 5,  FAB: 0 }, usage30: 30, lastMove: 0 },
-  { sku: 'SUB-VIN-GL',   name: 'Self-Adhesive Vinyl Gloss 1.52m',    cat: 'Substrate',  unit: 'roll',  cost: 185, rop: 8,  stock: { MAIN: 4,  PROD: 2,  FAB: 1 }, usage30: 18, lastMove: 2 },
-  { sku: 'SUB-VIN-MT',   name: 'Self-Adhesive Vinyl Matt 1.52m',     cat: 'Substrate',  unit: 'roll',  cost: 185, rop: 6,  stock: { MAIN: 9,  PROD: 1,  FAB: 0 }, usage30: 9,  lastMove: 4 },
-  { sku: 'SUB-ECOFAB',   name: 'Recycled Polyester Eco-Fabric 3.2m', cat: 'Substrate',  unit: 'roll',  cost: 420, rop: 4,  stock: { MAIN: 5,  PROD: 2,  FAB: 0 }, usage30: 6,  lastMove: 5 },
-  { sku: 'SUB-GREY-2',   name: 'Recycled Greyboard 2mm Sheet',       cat: 'Substrate',  unit: 'sheet', cost: 14,  rop: 60, stock: { MAIN: 120, PROD: 0, FAB: 45 }, usage30: 140, lastMove: 1 },
-  { sku: 'SUB-ACR-3',    name: 'Acrylic Clear Sheet 3mm 4x8',        cat: 'Substrate',  unit: 'sheet', cost: 95,  rop: 15, stock: { MAIN: 8,  PROD: 0,  FAB: 4 }, usage30: 26, lastMove: 2 },
-  { sku: 'SUB-FOAM-5',   name: 'Foam Board 5mm 4x8',                 cat: 'Substrate',  unit: 'sheet', cost: 28,  rop: 40, stock: { MAIN: 12, PROD: 6,  FAB: 8 }, usage30: 85, lastMove: 0 },
-  { sku: 'SUB-COR-4',    name: 'Corrugated PP Board 4mm 4x8',        cat: 'Substrate',  unit: 'sheet', cost: 22,  rop: 30, stock: { MAIN: 70, PROD: 0,  FAB: 10 }, usage30: 40, lastMove: 3 },
-  { sku: 'INK-UV-C',     name: 'UV Ink Cyan 1L Cartridge',           cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 2,  PROD: 3,  FAB: 0 }, usage30: 11, lastMove: 1 },
-  { sku: 'INK-UV-M',     name: 'UV Ink Magenta 1L Cartridge',        cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 5,  PROD: 3,  FAB: 0 }, usage30: 10, lastMove: 1 },
-  { sku: 'INK-UV-Y',     name: 'UV Ink Yellow 1L Cartridge',         cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 6,  PROD: 2,  FAB: 0 }, usage30: 9,  lastMove: 2 },
-  { sku: 'INK-UV-K',     name: 'UV Ink Black 1L Cartridge',          cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 0,  PROD: 1,  FAB: 0 }, usage30: 13, lastMove: 1 },
-  { sku: 'INK-ECO-SET',  name: 'Eco-Solvent Ink Set CMYK 1L',        cat: 'Ink',        unit: 'set',   cost: 520, rop: 3,  stock: { MAIN: 4,  PROD: 1,  FAB: 0 }, usage30: 4,  lastMove: 6 },
-  { sku: 'LAM-GL-137',   name: 'Lamination Film Gloss 1.37m x 50m',  cat: 'Lamination', unit: 'roll',  cost: 210, rop: 5,  stock: { MAIN: 3,  PROD: 0,  FAB: 2 }, usage30: 8,  lastMove: 2 },
-  { sku: 'LAM-MT-137',   name: 'Lamination Film Matt 1.37m x 50m',   cat: 'Lamination', unit: 'roll',  cost: 210, rop: 5,  stock: { MAIN: 7,  PROD: 0,  FAB: 1 }, usage30: 6,  lastMove: 4 },
-  { sku: 'LAM-FLOOR',    name: 'Anti-Slip Floor Lamination 1.37m',   cat: 'Lamination', unit: 'roll',  cost: 265, rop: 2,  stock: { MAIN: 3,  PROD: 0,  FAB: 0 }, usage30: 1,  lastMove: 12 },
-  { sku: 'CON-EYE-10',   name: 'Eyelets 10mm (box 500)',             cat: 'Consumable', unit: 'box',   cost: 38,  rop: 4,  stock: { MAIN: 6,  PROD: 2,  FAB: 3 }, usage30: 7,  lastMove: 3 },
-  { sku: 'CON-TAPE-2',   name: 'Double-Sided Tape 2in x 50m',        cat: 'Consumable', unit: 'roll',  cost: 16,  rop: 10, stock: { MAIN: 4,  PROD: 3,  FAB: 2 }, usage30: 20, lastMove: 1 },
-  { sku: 'CON-BLADE',    name: 'Plotter Blades 30 deg (pack 5)',     cat: 'Consumable', unit: 'pack',  cost: 55,  rop: 3,  stock: { MAIN: 5,  PROD: 1,  FAB: 0 }, usage30: 2,  lastMove: 9 },
-  { sku: 'CON-APP-122',  name: 'Application Tape 1.22m x 100m',      cat: 'Consumable', unit: 'roll',  cost: 88,  rop: 3,  stock: { MAIN: 4,  PROD: 0,  FAB: 2 }, usage30: 5,  lastMove: 4 },
-  { sku: 'PKG-TUBE-1',   name: 'Cardboard Tube 1m (bundle 25)',      cat: 'Packaging',  unit: 'bundle', cost: 45, rop: 4,  stock: { MAIN: 8,  PROD: 0,  FAB: 0 }, usage30: 6,  lastMove: 5 },
-  { sku: 'PKG-WRAP',     name: 'Stretch Film Roll 500mm',            cat: 'Packaging',  unit: 'roll',  cost: 24,  rop: 6,  stock: { MAIN: 10, PROD: 0,  FAB: 4 }, usage30: 9,  lastMove: 3 },
-  { sku: 'PRJ-CHROME-G', name: 'Gold Chrome Wrap Film 1.52m',        cat: 'Substrate',  unit: 'roll',  cost: 620, rop: 0,  stock: { MAIN: 4,  PROD: 0,  FAB: 0 }, usage30: 0,  lastMove: 148, project: 'JOB-2214 Prestige Motors wrap' },
-  { sku: 'PRJ-LED-NEON', name: 'LED Neon Flex 24V 50m Reel',         cat: 'Consumable', unit: 'reel',  cost: 480, rop: 0,  stock: { MAIN: 2,  PROD: 0,  FAB: 1 }, usage30: 0,  lastMove: 203, project: 'JOB-2088 Pavilion event booth' },
-  { sku: 'PRJ-FAB-BLK',  name: 'Blackout Display Fabric 3m Roll',    cat: 'Substrate',  unit: 'roll',  cost: 350, rop: 0,  stock: { MAIN: 3,  PROD: 0,  FAB: 0 }, usage30: 0,  lastMove: 96,  project: 'JOB-1976 KLCC exhibition' },
-  { sku: 'PRJ-ACR-AMB',  name: 'Acrylic Amber Sheet 5mm 4x8',        cat: 'Substrate',  unit: 'sheet', cost: 160, rop: 0,  stock: { MAIN: 0,  PROD: 0,  FAB: 6 }, usage30: 0,  lastMove: 71,  project: 'JOB-2141 Retail glorifier' },
+  { sku: 'SUB-EPVC-32',  name: 'Eco-PVC Green Vinyl 3.2m Roll',      cat: 'Substrate',  unit: 'roll',  cost: 380, rop: 10, stock: { MAIN: 6,  PROD: 3,  FAB: 0 }, usage30: 22, lastMove: 1, img: 'https://loremflickr.com/800/600/vinyl,green' },
+  { sku: 'SUB-PVC-32',   name: 'Standard PVC Flex 3.2m Roll',        cat: 'Substrate',  unit: 'roll',  cost: 290, rop: 12, stock: { MAIN: 15, PROD: 5,  FAB: 0 }, usage30: 30, lastMove: 0, img: 'https://loremflickr.com/800/600/pvc,roll' },
+  { sku: 'SUB-VIN-GL',   name: 'Self-Adhesive Vinyl Gloss 1.52m',    cat: 'Substrate',  unit: 'roll',  cost: 185, rop: 8,  stock: { MAIN: 4,  PROD: 2,  FAB: 1 }, usage30: 18, lastMove: 2, img: 'https://loremflickr.com/800/600/vinyl,glossy' },
+  { sku: 'SUB-VIN-MT',   name: 'Self-Adhesive Vinyl Matt 1.52m',     cat: 'Substrate',  unit: 'roll',  cost: 185, rop: 6,  stock: { MAIN: 9,  PROD: 1,  FAB: 0 }, usage30: 9,  lastMove: 4, img: 'https://loremflickr.com/800/600/vinyl,matte' },
+  { sku: 'SUB-ECOFAB',   name: 'Recycled Polyester Eco-Fabric 3.2m', cat: 'Substrate',  unit: 'roll',  cost: 420, rop: 4,  stock: { MAIN: 5,  PROD: 2,  FAB: 0 }, usage30: 6,  lastMove: 5, img: 'https://loremflickr.com/800/600/fabric,roll' },
+  { sku: 'SUB-GREY-2',   name: 'Recycled Greyboard 2mm Sheet',       cat: 'Substrate',  unit: 'sheet', cost: 14,  rop: 60, stock: { MAIN: 120, PROD: 0, FAB: 45 }, usage30: 140, lastMove: 1, img: 'https://loremflickr.com/800/600/cardboard,grey' },
+  { sku: 'SUB-ACR-3',    name: 'Acrylic Clear Sheet 3mm 4x8',        cat: 'Substrate',  unit: 'sheet', cost: 95,  rop: 15, stock: { MAIN: 8,  PROD: 0,  FAB: 4 }, usage30: 26, lastMove: 2, img: 'https://loremflickr.com/800/600/acrylic,clear' },
+  { sku: 'SUB-FOAM-5',   name: 'Foam Board 5mm 4x8',                 cat: 'Substrate',  unit: 'sheet', cost: 28,  rop: 40, stock: { MAIN: 12, PROD: 6,  FAB: 8 }, usage30: 85, lastMove: 0, img: 'https://loremflickr.com/800/600/foam,board' },
+  { sku: 'SUB-COR-4',    name: 'Corrugated PP Board 4mm 4x8',        cat: 'Substrate',  unit: 'sheet', cost: 22,  rop: 30, stock: { MAIN: 70, PROD: 0,  FAB: 10 }, usage30: 40, lastMove: 3, img: 'https://loremflickr.com/800/600/corrugated,plastic' },
+  { sku: 'INK-UV-C',     name: 'UV Ink Cyan 1L Cartridge',           cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 2,  PROD: 3,  FAB: 0 }, usage30: 11, lastMove: 1, img: 'https://loremflickr.com/800/600/ink,cyan' },
+  { sku: 'INK-UV-M',     name: 'UV Ink Magenta 1L Cartridge',        cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 5,  PROD: 3,  FAB: 0 }, usage30: 10, lastMove: 1, img: 'https://loremflickr.com/800/600/ink,magenta' },
+  { sku: 'INK-UV-Y',     name: 'UV Ink Yellow 1L Cartridge',         cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 6,  PROD: 2,  FAB: 0 }, usage30: 9,  lastMove: 2, img: 'https://loremflickr.com/800/600/ink,yellow' },
+  { sku: 'INK-UV-K',     name: 'UV Ink Black 1L Cartridge',          cat: 'Ink',        unit: 'cart',  cost: 145, rop: 6,  stock: { MAIN: 0,  PROD: 1,  FAB: 0 }, usage30: 13, lastMove: 1, img: 'https://loremflickr.com/800/600/ink,black' },
+  { sku: 'INK-ECO-SET',  name: 'Eco-Solvent Ink Set CMYK 1L',        cat: 'Ink',        unit: 'set',   cost: 520, rop: 3,  stock: { MAIN: 4,  PROD: 1,  FAB: 0 }, usage30: 4,  lastMove: 6, img: 'https://loremflickr.com/800/600/ink,cmyk' },
+  { sku: 'LAM-GL-137',   name: 'Lamination Film Gloss 1.37m x 50m',  cat: 'Lamination', unit: 'roll',  cost: 210, rop: 5,  stock: { MAIN: 3,  PROD: 0,  FAB: 2 }, usage30: 8,  lastMove: 2, img: 'https://loremflickr.com/800/600/lamination,gloss' },
+  { sku: 'LAM-MT-137',   name: 'Lamination Film Matt 1.37m x 50m',   cat: 'Lamination', unit: 'roll',  cost: 210, rop: 5,  stock: { MAIN: 7,  PROD: 0,  FAB: 1 }, usage30: 6,  lastMove: 4, img: 'https://loremflickr.com/800/600/lamination,matte' },
+  { sku: 'LAM-FLOOR',    name: 'Anti-Slip Floor Lamination 1.37m',   cat: 'Lamination', unit: 'roll',  cost: 265, rop: 2,  stock: { MAIN: 3,  PROD: 0,  FAB: 0 }, usage30: 1,  lastMove: 12, img: 'https://loremflickr.com/800/600/floor,lamination' },
+  { sku: 'CON-EYE-10',   name: 'Eyelets 10mm (box 500)',             cat: 'Consumable', unit: 'box',   cost: 38,  rop: 4,  stock: { MAIN: 6,  PROD: 2,  FAB: 3 }, usage30: 7,  lastMove: 3, img: 'https://loremflickr.com/800/600/eyelets,metal' },
+  { sku: 'CON-TAPE-2',   name: 'Double-Sided Tape 2in x 50m',        cat: 'Consumable', unit: 'roll',  cost: 16,  rop: 10, stock: { MAIN: 4,  PROD: 3,  FAB: 2 }, usage30: 20, lastMove: 1, img: 'https://loremflickr.com/800/600/tape,roll' },
+  { sku: 'CON-BLADE',    name: 'Plotter Blades 30 deg (pack 5)',     cat: 'Consumable', unit: 'pack',  cost: 55,  rop: 3,  stock: { MAIN: 5,  PROD: 1,  FAB: 0 }, usage30: 2,  lastMove: 9, img: 'https://loremflickr.com/800/600/plotter,blade' },
+  { sku: 'CON-APP-122',  name: 'Application Tape 1.22m x 100m',      cat: 'Consumable', unit: 'roll',  cost: 88,  rop: 3,  stock: { MAIN: 4,  PROD: 0,  FAB: 2 }, usage30: 5,  lastMove: 4, img: 'https://loremflickr.com/800/600/tape,application' },
+  { sku: 'PKG-TUBE-1',   name: 'Cardboard Tube 1m (bundle 25)',      cat: 'Packaging',  unit: 'bundle', cost: 45, rop: 4,  stock: { MAIN: 8,  PROD: 0,  FAB: 0 }, usage30: 6,  lastMove: 5, img: 'https://loremflickr.com/800/600/tube,cardboard' },
+  { sku: 'PKG-WRAP',     name: 'Stretch Film Roll 500mm',            cat: 'Packaging',  unit: 'roll',  cost: 24,  rop: 6,  stock: { MAIN: 10, PROD: 0,  FAB: 4 }, usage30: 9,  lastMove: 3, img: 'https://loremflickr.com/800/600/shrinkwrap,roll' },
+  { sku: 'PRJ-CHROME-G', name: 'Gold Chrome Wrap Film 1.52m',        cat: 'Substrate',  unit: 'roll',  cost: 620, rop: 0,  stock: { MAIN: 4,  PROD: 0,  FAB: 0 }, usage30: 0,  lastMove: 148, project: 'JOB-2214 Prestige Motors wrap', img: 'https://loremflickr.com/800/600/chrome,gold' },
+  { sku: 'PRJ-LED-NEON', name: 'LED Neon Flex 24V 50m Reel',         cat: 'Consumable', unit: 'reel',  cost: 480, rop: 0,  stock: { MAIN: 2,  PROD: 0,  FAB: 1 }, usage30: 0,  lastMove: 203, project: 'JOB-2088 Pavilion event booth', img: 'https://loremflickr.com/800/600/neon,led' },
+  { sku: 'PRJ-FAB-BLK',  name: 'Blackout Display Fabric 3m Roll',    cat: 'Substrate',  unit: 'roll',  cost: 350, rop: 0,  stock: { MAIN: 3,  PROD: 0,  FAB: 0 }, usage30: 0,  lastMove: 96,  project: 'JOB-1976 KLCC exhibition', img: 'https://loremflickr.com/800/600/fabric,black' },
+  { sku: 'PRJ-ACR-AMB',  name: 'Acrylic Amber Sheet 5mm 4x8',        cat: 'Substrate',  unit: 'sheet', cost: 160, rop: 0,  stock: { MAIN: 0,  PROD: 0,  FAB: 6 }, usage30: 0,  lastMove: 71,  project: 'JOB-2141 Retail glorifier', img: 'https://loremflickr.com/800/600/acrylic,amber' },
 ];
 
 // Seed movement history (most recent first). Balances are derived at render time.
@@ -691,7 +707,12 @@ function renderInventory() {
   $('inv-body').innerHTML = rows.map(it => `
     <tr class="clickable" onclick="openBinCard('${it.sku}')">
       <td>${it.sku}</td>
-      <td>${it.name}${it.project ? '<br><span class="conf">Bought for ' + it.project + '</span>' : ''}</td>
+      <td>
+        <div class="item-name-cell">
+          <img src="${it.img}" class="item-thumb" onclick="openLightbox('${it.img}', '${it.name.replace(/'/g, "\\'")}', event)">
+          <div>${it.name}${it.project ? '<br><span class="conf">Bought for ' + it.project + '</span>' : ''}</div>
+        </div>
+      </td>
       <td>${it.cat}</td>
       <td class="num">${it.stock.MAIN || 0}</td>
       <td class="num">${it.stock.PROD || 0}</td>
@@ -1249,6 +1270,17 @@ $('inv-preset').addEventListener('change', renderInvoiceDoc);
 $('ocr-run').addEventListener('click', runInvoiceOCR);
 $('ocr-post').addEventListener('click', postInvoice);
 $('reset-demo').addEventListener('click', resetDemo);
+
+function openLightbox(src, title, e) {
+  e.stopPropagation();
+  $('lb-img').src = src;
+  $('lb-title').textContent = title;
+  $('img-lightbox').style.display = 'flex';
+}
+function closeLightbox() {
+  $('img-lightbox').style.display = 'none';
+}
+
 renderAll();
 </script>
 </body>
