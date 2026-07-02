@@ -392,6 +392,17 @@
         <option value="OUT">Out of stock</option>
         <option value="IDLE">Idle project stock</option>
       </select>
+      <select id="inv-sort">
+        <option value="name">Sort by: Item Name</option>
+        <option value="sku">Sort by: SKU Code</option>
+        <option value="total">Sort by: Total (Low to High)</option>
+        <option value="total-desc">Sort by: Total (High to Low)</option>
+        <option value="idle">Sort by: Longest Idle</option>
+        <option value="latestIn">Sort by: Latest Stock In</option>
+        <option value="latestOut">Sort by: Latest Stock Out</option>
+        <option value="velocity">Sort by: Velocity (Fast first)</option>
+        <option value="status">Sort by: Status (Critical first)</option>
+      </select>
     </div>
     <div class="card" style="overflow-x:auto;">
       <table>
@@ -741,7 +752,7 @@ document.addEventListener('mousemove', e => {
 function initInventoryControls() {
   $('inv-cat').innerHTML = '<option value="">All categories</option>' + CATS.map(c => `<option>${c}</option>`).join('');
   $('inv-store').innerHTML = '<option value="">All stores</option>' + STORES.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-  ['inv-search', 'inv-cat', 'inv-store', 'inv-status'].forEach(id => $(id).addEventListener('input', renderInventory));
+  ['inv-search', 'inv-cat', 'inv-store', 'inv-status', 'inv-sort'].forEach(id => $(id).addEventListener('input', renderInventory));
   $('tr-item').innerHTML = ITEMS.map(i => `<option value="${i.sku}">${i.sku} - ${i.name}</option>`).join('');
   $('tr-from').innerHTML = STORES.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
   $('tr-to').innerHTML = STORES.map(s => `<option value="${s.id}" ${s.id === 'PROD' ? 'selected' : ''}>${s.name}</option>`).join('');
@@ -761,15 +772,23 @@ function filterTransferDropdowns() {
 }
 
 // M2: Sort state
-let invSort = { col: null, dir: 'asc' };
+let invSort = { col: 'name', dir: 'asc' };
+const getLatestMove = (sku, type) => {
+  const m = movements.find(m => m.sku === sku && m.type === type);
+  return m ? m.ts.getTime() : 0;
+};
 const sortFns = {
   sku: (a, b) => a.sku.localeCompare(b.sku),
   name: (a, b) => a.name.localeCompare(b.name),
   cat: (a, b) => a.cat.localeCompare(b.cat),
   total: (a, b) => totalQty(a) - totalQty(b),
+  'total-desc': (a, b) => totalQty(b) - totalQty(a),
   rop: (a, b) => (a.rop || 0) - (b.rop || 0),
   velocity: (a, b) => { const o = { FAST: 0, SLOW: 1, IDLE: 2 }; return (o[velocity(a)] || 0) - (o[velocity(b)] || 0); },
   status: (a, b) => { const o = { OUT: 0, LOW: 1, IDLE: 2, OK: 3 }; return (o[stockStatus(a)] || 0) - (o[stockStatus(b)] || 0); },
+  idle: (a, b) => (b.lastMove || 0) - (a.lastMove || 0),
+  latestIn: (a, b) => getLatestMove(b.sku, 'IN') - getLatestMove(a.sku, 'IN'),
+  latestOut: (a, b) => getLatestMove(b.sku, 'OUT') - getLatestMove(a.sku, 'OUT'),
 };
 function toggleSort(col) {
   if (invSort.col === col) invSort.dir = invSort.dir === 'asc' ? 'desc' : 'asc';
@@ -784,14 +803,21 @@ function sortIcon(col) {
 function renderInventory() {
   const q = $('inv-search').value.toLowerCase();
   const cat = $('inv-cat').value, store = $('inv-store').value, status = $('inv-status').value;
+  const sortKey = $('inv-sort').value;
+  
   let rows = ITEMS.filter(it =>
     (!q || it.sku.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)) &&
     (!cat || it.cat === cat) &&
     (!store || (it.stock[store] || 0) > 0) &&
     (!status || stockStatus(it) === status)
   );
-  // M2: Apply sort
-  if (invSort.col && sortFns[invSort.col]) {
+
+  // Apply sort from dropdown
+  if (sortKey && sortFns[sortKey]) {
+    rows = [...rows].sort(sortFns[sortKey]);
+  }
+  // Then apply table header sort if active (overrides dropdown if col is set)
+  else if (invSort.col && sortFns[invSort.col]) {
     rows = [...rows].sort(sortFns[invSort.col]);
     if (invSort.dir === 'desc') rows.reverse();
   }
