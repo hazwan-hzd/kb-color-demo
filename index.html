@@ -457,28 +457,7 @@
           </div>
         </div>
 
-        <div class="card intake-ui">
-          <div id="camera-container" class="camera-preview">
-            <div class="camera-overlay">
-              <svg viewBox="0 0 24 24" width="48" height="48" fill="white" opacity="0.5"><path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0a3.2 3.2 0 1 0 -6.4 0M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z"/></svg>
-              <span>Vision Engine Ready</span>
-            </div>
-            <img id="intake-preview" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:8px;">
-          </div>
-          <div class="controls" style="margin-top:15px; justify-content: center; gap: 10px;">
-            <button class="btn btn-ghost" id="btn-camera"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0a3.2 3.2 0 1 0 -6.4 0M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z"/></svg> Open Camera</button>
-            <input type="file" id="intake-upload" accept="image/*" style="display:none">
-            <button class="btn btn-ghost" onclick="$('intake-upload').click()">Upload File</button>
-            <button class="btn btn-primary" id="ocr-run">Process with Profitrix Vision</button>
-          </div>
-          <p class="sub center" style="margin-top:8px;">Shortcut: Press <strong>'V'</strong> to trigger Vision Analysis</p>
-        </div>
-        <div id="invoice-doc" style="display:none;"></div>
-        <div class="ocr-progress" id="ocr-progress" style="background: rgba(21, 101, 192, 0.1); border: 1px solid var(--accent); border-radius: 8px; margin-top: 15px; display: none;">
-          <span class="pulse" style="background: var(--accent);"></span>
-          <span style="color: var(--accent); font-weight: 600;">Profitrix Vision Engine analyzing document...</span>
-        </div>
-      </div>
+        <div class="ocr-progress" id="ocr-progress"><span class="pulse"></span><span>Profitrix Vision Engine analyzing document...</span></div>
 
       <div>
         <div class="card" id="ocr-result-card" style="display:none;">
